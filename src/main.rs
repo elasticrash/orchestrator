@@ -1,4 +1,6 @@
 use rand::Rng;
+use std::result::Result;
+use std::vec::Vec;
 
 #[derive(Debug)]
 struct Error {
@@ -13,15 +15,15 @@ struct State {
 trait Chain {
     fn create<'a>(
         self,
-        col: &'a std::vec::Vec<(fn(State) -> std::result::Result<State, Error>, &str)>,
-    ) -> std::vec::Vec<&'a fn(State) -> std::result::Result<State, Error>>;
+        col: &'a Vec<(fn(State) -> Result<State, Error>, &str)>,
+    ) -> Vec<&'a fn(State) -> Result<State, Error>>;
 }
 
 impl Chain for Vec<&str> {
     fn create<'a>(
         self,
-        col: &'a std::vec::Vec<(fn(State) -> std::result::Result<State, Error>, &str)>,
-    ) -> std::vec::Vec<&'a fn(State) -> std::result::Result<State, Error>> {
+        col: &'a Vec<(fn(State) -> Result<State, Error>, &str)>,
+    ) -> Vec<&'a fn(State) -> Result<State, Error>> {
         self.iter()
             .map(|name| {
                 let (g, _m): &(fn(state: State) -> Result<State, Error>, &str) =
@@ -32,24 +34,33 @@ impl Chain for Vec<&str> {
     }
 }
 
+trait Orchestrate {
+    fn execute(self) -> State;
+}
+
+impl<'a> Orchestrate for Vec<&'a fn(State) -> Result<State, Error>> {
+    fn execute(self) -> State {
+        self.iter().fold(State { outcome: true }, |output, next| {
+            next(output).unwrap()
+        })
+    }
+}
+
 fn main() {
     let mut fun_collection: Vec<(fn(state: State) -> Result<State, Error>, &str)> = vec![];
     register(a, "a", &mut fun_collection);
     register(b, "b", &mut fun_collection);
     register(c, "c", &mut fun_collection);
 
-    let chain = vec!["a", "b", "c"].create(&fun_collection);
+    let result = vec!["a", "b", "c"].create(&fun_collection).execute();
 
-    let x = chain.iter().fold(State { outcome: true }, |output, next| {
-        next(output).unwrap()
-    });
-    println!("{:?}", x);
+    println!("{:?}", result);
 }
 
 fn register<'a>(
     f: fn(state: State) -> Result<State, Error>,
     name: &'a str,
-    fun_collection: &mut std::vec::Vec<(fn(State) -> std::result::Result<State, Error>, &'a str)>,
+    fun_collection: &mut Vec<(fn(State) -> Result<State, Error>, &'a str)>,
 ) {
     fun_collection.push((f, name))
 }
