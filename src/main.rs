@@ -9,7 +9,8 @@ struct Error {
 
 #[derive(Debug)]
 struct State {
-    outcome: bool,
+    proceed: bool,
+    outcome: f32,
 }
 
 trait Chain {
@@ -27,7 +28,10 @@ impl Chain for Vec<&str> {
         self.iter()
             .map(|name| {
                 let (g, _m): &(fn(state: State) -> Result<State, Error>, &str) =
-                    col.iter().filter(|(_f, n)| n == name).next().unwrap();
+                    match col.iter().filter(|(_f, n)| n == name).next() {
+                        Some(res) => res,
+                        None => panic!(format!("no function found with name {} exiting", name)),
+                    };
                 g
             })
             .collect()
@@ -40,19 +44,31 @@ trait Orchestrate {
 
 impl<'a> Orchestrate for Vec<&'a fn(State) -> Result<State, Error>> {
     fn execute(self) -> State {
-        self.iter().fold(State { outcome: true }, |output, next| {
-            next(output).unwrap()
-        })
+        self.iter().fold(
+            State {
+                proceed: true,
+                outcome: 6.,
+            },
+            |output, next| next(output).unwrap(),
+        )
     }
 }
 
 fn main() {
     let mut fun_collection: Vec<(fn(state: State) -> Result<State, Error>, &str)> = vec![];
-    register(a, "a", &mut fun_collection);
-    register(b, "b", &mut fun_collection);
-    register(c, "c", &mut fun_collection);
+    register(a, "pow2", &mut fun_collection);
+    register(b, "pow3", &mut fun_collection);
+    register(c, "sqrt", &mut fun_collection);
 
-    let result = vec!["a", "b", "c"].create(&fun_collection).execute();
+    let result = vec!["pow2", "pow3", "sqrt"]
+        .create(&fun_collection)
+        .execute();
+
+    println!("{:?}", result);
+
+    let result = vec!["pow3", "pow3", "sqrt", "sqrt"]
+        .create(&fun_collection)
+        .execute();
 
     println!("{:?}", result);
 }
@@ -66,31 +82,40 @@ fn register<'a>(
 }
 
 fn a(c: State) -> Result<State, Error> {
-    if c.outcome == false {
+    if c.proceed == false {
         Ok(c)
     } else {
         let mut rng = rand::thread_rng();
         let y: bool = rng.gen();
-        Ok(State { outcome: y })
+        Ok(State {
+            proceed: y,
+            outcome: c.outcome.powf(2.0),
+        })
     }
 }
 
 fn b(c: State) -> Result<State, Error> {
-    if c.outcome == false {
+    if c.proceed == false {
         Ok(c)
     } else {
         let mut rng = rand::thread_rng();
         let y: bool = rng.gen();
-        Ok(State { outcome: y })
+        Ok(State {
+            proceed: y,
+            outcome: c.outcome.powf(3.0),
+        })
     }
 }
 
 fn c(c: State) -> Result<State, Error> {
-    if c.outcome == false {
+    if c.proceed == false {
         Ok(c)
     } else {
         let mut rng = rand::thread_rng();
         let y: bool = rng.gen();
-        Ok(State { outcome: y })
+        Ok(State {
+            proceed: y,
+            outcome: c.outcome.sqrt(),
+        })
     }
 }
