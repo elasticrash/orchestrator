@@ -11,6 +11,7 @@ struct Error {
 struct State {
     proceed: bool,
     outcome: f32,
+    stage: Vec<bool>,
 }
 
 trait Chain {
@@ -39,18 +40,13 @@ impl Chain for Vec<&str> {
 }
 
 trait Orchestrate {
-    fn execute(self) -> State;
+    fn execute(self, state: State) -> State;
 }
 
 impl<'a> Orchestrate for Vec<&'a fn(State) -> Result<State, Error>> {
-    fn execute(self) -> State {
-        self.iter().fold(
-            State {
-                proceed: true,
-                outcome: 6.,
-            },
-            |output, next| next(output).unwrap(),
-        )
+    fn execute(self, state: State) -> State {
+        self.iter()
+            .fold(state, |output, next| next(output).unwrap())
     }
 }
 
@@ -62,13 +58,21 @@ fn main() {
 
     let result = vec!["pow2", "pow3", "sqrt"]
         .create(&fun_collection)
-        .execute();
+        .execute(State {
+            proceed: true,
+            outcome: 6.,
+            stage: Vec::<bool>::new(),
+        });
 
     println!("{:?}", result);
 
     let result = vec!["pow3", "pow3", "sqrt", "sqrt"]
         .create(&fun_collection)
-        .execute();
+        .execute(State {
+            proceed: true,
+            outcome: 6.,
+            stage: Vec::<bool>::new(),
+        });
 
     println!("{:?}", result);
 }
@@ -82,6 +86,8 @@ fn register<'a>(
 }
 
 fn a(c: State) -> Result<State, Error> {
+    let mut stage: Vec<bool> = c.stage.to_vec();
+    stage.push(c.proceed);
     if c.proceed == false {
         Ok(c)
     } else {
@@ -90,11 +96,14 @@ fn a(c: State) -> Result<State, Error> {
         Ok(State {
             proceed: y,
             outcome: c.outcome.powf(2.0),
+            stage: stage,
         })
     }
 }
 
 fn b(c: State) -> Result<State, Error> {
+    let mut stage: Vec<bool> = c.stage.to_vec();
+    stage.push(c.proceed);
     if c.proceed == false {
         Ok(c)
     } else {
@@ -103,11 +112,14 @@ fn b(c: State) -> Result<State, Error> {
         Ok(State {
             proceed: y,
             outcome: c.outcome.powf(3.0),
+            stage: stage,
         })
     }
 }
 
 fn c(c: State) -> Result<State, Error> {
+    let mut stage: Vec<bool> = c.stage.to_vec();
+    stage.push(c.proceed);
     if c.proceed == false {
         Ok(c)
     } else {
@@ -116,6 +128,7 @@ fn c(c: State) -> Result<State, Error> {
         Ok(State {
             proceed: y,
             outcome: c.outcome.sqrt(),
+            stage: stage,
         })
     }
 }
