@@ -89,7 +89,11 @@ fn a(c: State) -> Result<State, Error> {
     let mut stage: Vec<bool> = c.stage.to_vec();
     stage.push(c.proceed);
     if c.proceed == false {
-        Ok(c)
+        Ok(State {
+            proceed: false,
+            outcome: c.outcome,
+            stage: stage,
+        })
     } else {
         let mut rng = rand::thread_rng();
         let y: bool = rng.gen();
@@ -105,7 +109,11 @@ fn b(c: State) -> Result<State, Error> {
     let mut stage: Vec<bool> = c.stage.to_vec();
     stage.push(c.proceed);
     if c.proceed == false {
-        Ok(c)
+        Ok(State {
+            proceed: false,
+            outcome: c.outcome,
+            stage: stage,
+        })
     } else {
         let mut rng = rand::thread_rng();
         let y: bool = rng.gen();
@@ -121,7 +129,11 @@ fn c(c: State) -> Result<State, Error> {
     let mut stage: Vec<bool> = c.stage.to_vec();
     stage.push(c.proceed);
     if c.proceed == false {
-        Ok(c)
+        Ok(State {
+            proceed: false,
+            outcome: c.outcome,
+            stage: stage,
+        })
     } else {
         let mut rng = rand::thread_rng();
         let y: bool = rng.gen();
