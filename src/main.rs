@@ -17,18 +17,18 @@ struct State {
 trait Chain {
     fn create<'a>(
         self,
-        col: &'a Vec<(fn(State) -> Result<State, Error>, &str)>,
+        col: &'a Vec<(fn(State) -> Result<State, Error>, String)>,
     ) -> Vec<&'a fn(State) -> Result<State, Error>>;
 }
 
 impl Chain for Vec<&str> {
     fn create<'a>(
         self,
-        col: &'a Vec<(fn(State) -> Result<State, Error>, &str)>,
+        col: &'a Vec<(fn(State) -> Result<State, Error>, String)>,
     ) -> Vec<&'a fn(State) -> Result<State, Error>> {
         self.iter()
             .map(|name| {
-                let (g, _m): &(fn(state: State) -> Result<State, Error>, &str) =
+                let (g, _m): &(fn(state: State) -> Result<State, Error>, String) =
                     match col.iter().filter(|(_f, n)| n == name).next() {
                         Some(res) => res,
                         None => panic!(format!("no function found with name {} exiting", name)),
@@ -36,6 +36,25 @@ impl Chain for Vec<&str> {
                 g
             })
             .collect()
+    }
+}
+
+#[derive(Debug)]
+struct Registry {
+    pub di_ref: Vec<(fn(State) -> Result<State, Error>, String)>,
+}
+
+trait Register {
+    fn register(&mut self, f: fn(state: State) -> Result<State, Error>, name: String);
+    fn new() -> Self;
+}
+
+impl Register for Registry {
+    fn register(&mut self, f: fn(state: State) -> Result<State, Error>, name: String) {
+        self.di_ref.push((f, name));
+    }
+    fn new() -> Self {
+        Self { di_ref: vec![] }
     }
 }
 
@@ -51,13 +70,13 @@ impl<'a> Orchestrate for Vec<&'a fn(State) -> Result<State, Error>> {
 }
 
 fn main() {
-    let mut fun_collection: Vec<(fn(state: State) -> Result<State, Error>, &str)> = vec![];
-    register(a, "pow2", &mut fun_collection);
-    register(b, "pow3", &mut fun_collection);
-    register(c, "sqrt", &mut fun_collection);
+    let mut registry = Registry::new();
+    registry.register(a, "pow2".to_string());
+    registry.register(b, "pow3".to_string());
+    registry.register(c, "sqrt".to_string());
 
     let result = vec!["pow2", "pow3", "sqrt"]
-        .create(&fun_collection)
+        .create(&registry.di_ref)
         .execute(State {
             proceed: true,
             outcome: 6.,
@@ -67,7 +86,7 @@ fn main() {
     println!("{:?}", result);
 
     let result = vec!["pow3", "pow3", "sqrt", "sqrt"]
-        .create(&fun_collection)
+        .create(&registry.di_ref)
         .execute(State {
             proceed: true,
             outcome: 6.,
@@ -75,14 +94,6 @@ fn main() {
         });
 
     println!("{:?}", result);
-}
-
-fn register<'a>(
-    f: fn(state: State) -> Result<State, Error>,
-    name: &'a str,
-    fun_collection: &mut Vec<(fn(State) -> Result<State, Error>, &'a str)>,
-) {
-    fun_collection.push((f, name))
 }
 
 fn a(c: State) -> Result<State, Error> {
