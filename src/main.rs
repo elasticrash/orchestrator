@@ -2,16 +2,41 @@ use rand::Rng;
 use std::result::Result;
 use std::vec::Vec;
 
+macro_rules! state_function {
+    ( $func:expr ) => {{
+        pub fn state_fn(c: State) -> Result<State, Error> {
+            let stage: Vec<bool> = c.stage.to_vec();
+            if c.proceed == false {
+                Ok(State {
+                    proceed: false,
+                    outcome: c.outcome,
+                    stage: stage,
+                })
+            } else {
+                let mut rng = rand::thread_rng();
+                let y: bool = rng.gen();
+                Ok(State {
+                    proceed: y,
+                    outcome: $func(c.outcome),
+                    stage: stage,
+                })
+            }
+        }
+
+        state_fn
+    }};
+}
+
 #[derive(Debug)]
-struct Error {
-    message: String,
+pub struct Error {
+    pub message: String,
 }
 
 #[derive(Debug, Clone)]
-struct State {
-    proceed: bool,
-    outcome: f32,
-    stage: Vec<bool>,
+pub struct State {
+    pub proceed: bool,
+    pub outcome: f32,
+    pub stage: Vec<bool>,
 }
 
 trait Chain {
@@ -84,6 +109,10 @@ impl<'a> Orchestrate for Vec<&'a fn(State) -> Result<State, Error>> {
 
 fn main() {
     let mut registry = Registry::new();
+    let a: fn(State) -> Result<State, Error> = state_function!(pow2);
+    let b: fn(State) -> Result<State, Error> = state_function!(pow3);
+    let c: fn(State) -> Result<State, Error> = state_function!(sqrt);
+
     registry.register(a, "pow2".to_string());
     registry.register(b, "pow3".to_string());
     registry.register(c, "sqrt".to_string());
@@ -109,62 +138,14 @@ fn main() {
     println!("{:?}", result);
 }
 
-fn a(c: State) -> Result<State, Error> {
-    println!("a");
-    let stage: Vec<bool> = c.stage.to_vec();
-    if c.proceed == false {
-        Ok(State {
-            proceed: false,
-            outcome: c.outcome,
-            stage: stage,
-        })
-    } else {
-        let mut rng = rand::thread_rng();
-        let y: bool = rng.gen();
-        Ok(State {
-            proceed: y,
-            outcome: c.outcome.powf(2.0),
-            stage: stage,
-        })
-    }
+fn pow2(n: f32) -> f32 {
+    n.powf(2.0)
 }
 
-fn b(c: State) -> Result<State, Error> {
-    println!("b");
-    let stage: Vec<bool> = c.stage.to_vec();
-    if c.proceed == false {
-        Ok(State {
-            proceed: false,
-            outcome: c.outcome,
-            stage: stage,
-        })
-    } else {
-        let mut rng = rand::thread_rng();
-        let y: bool = rng.gen();
-        Ok(State {
-            proceed: y,
-            outcome: c.outcome.powf(3.0),
-            stage: stage,
-        })
-    }
+fn pow3(n: f32) -> f32 {
+    n.powf(3.0)
 }
 
-fn c(c: State) -> Result<State, Error> {
-    println!("c");
-    let stage: Vec<bool> = c.stage.to_vec();
-    if c.proceed == false {
-        Ok(State {
-            proceed: false,
-            outcome: c.outcome,
-            stage: stage,
-        })
-    } else {
-        let mut rng = rand::thread_rng();
-        let y: bool = rng.gen();
-        Ok(State {
-            proceed: y,
-            outcome: c.outcome.sqrt(),
-            stage: stage,
-        })
-    }
+fn sqrt(n: f32) -> f32 {
+    n.sqrt()
 }
