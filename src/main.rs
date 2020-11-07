@@ -7,7 +7,7 @@ struct Error {
     message: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct State {
     proceed: bool,
     outcome: f32,
@@ -64,8 +64,21 @@ trait Orchestrate {
 
 impl<'a> Orchestrate for Vec<&'a fn(State) -> Result<State, Error>> {
     fn execute(self, state: State) -> State {
-        self.iter()
-            .fold(state, |output, next| next(output).unwrap())
+        self.iter().enumerate().fold(state, |output, (i, func)| {
+            let new_state = output.clone();
+            if new_state.stage.len() > i {
+                if new_state.stage[i] {
+                    return new_state;
+                } else {
+                    let mut next_state = func(new_state).unwrap();
+                    next_state.stage[i] = next_state.proceed;
+                    return next_state;
+                }
+            }
+            let mut next_state = func(new_state).unwrap();
+            next_state.stage.push(next_state.proceed);
+            return next_state;
+        })
     }
 }
 
@@ -90,15 +103,15 @@ fn main() {
         .execute(State {
             proceed: true,
             outcome: 6.,
-            stage: Vec::<bool>::new(),
+            stage: vec![true, true, false, false],
         });
 
     println!("{:?}", result);
 }
 
 fn a(c: State) -> Result<State, Error> {
-    let mut stage: Vec<bool> = c.stage.to_vec();
-    stage.push(c.proceed);
+    println!("a");
+    let stage: Vec<bool> = c.stage.to_vec();
     if c.proceed == false {
         Ok(State {
             proceed: false,
@@ -117,8 +130,8 @@ fn a(c: State) -> Result<State, Error> {
 }
 
 fn b(c: State) -> Result<State, Error> {
-    let mut stage: Vec<bool> = c.stage.to_vec();
-    stage.push(c.proceed);
+    println!("b");
+    let stage: Vec<bool> = c.stage.to_vec();
     if c.proceed == false {
         Ok(State {
             proceed: false,
@@ -137,8 +150,8 @@ fn b(c: State) -> Result<State, Error> {
 }
 
 fn c(c: State) -> Result<State, Error> {
-    let mut stage: Vec<bool> = c.stage.to_vec();
-    stage.push(c.proceed);
+    println!("c");
+    let stage: Vec<bool> = c.stage.to_vec();
     if c.proceed == false {
         Ok(State {
             proceed: false,
