@@ -4,7 +4,11 @@ version = "0.1.0"
 authors = ["stefanos.kouroupis <stefanos.kouroupis@cloudcall.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "coordination"
+path = "./src/lib.rs"
 
 [dependencies]
 rand = "0.7.3"
+
+
