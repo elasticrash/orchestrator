@@ -1,5 +1,5 @@
-extern crate coordination;
-use coordination::{state_function, Chain, Error, Orchestrate, Register, Registry, State};
+extern crate orchestrator;
+use orchestrator::{state_function, Chain, Error, Orchestrate, Register, Registry, State};
 
 fn main() {
     let mut registry = Registry::new();

@@ -1,14 +1,18 @@
 [package]
-name = "coordination"
+name = "orchestrator"
 version = "0.1.0"
 authors = ["stefanos.kouroupis <stefanos.kouroupis@cloudcall.com>"]
 edition = "2018"
+description = "Create orchestration sequences"
+license = "MIT"
+keywords = ["orchestration", "pipeline", "sequences"]
+documentation = "https://docs.rs/orchestrator"
+repository = "https://github.com/elasticrash/orchestrator.git"
+readme = "README.md"
 
 [lib]
-name = "coordination"
+name = "orchestrator"
 path = "./src/lib.rs"
 
 [dependencies]
-rand = "0.7.3"
-
 
