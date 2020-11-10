@@ -3,12 +3,12 @@ use orchestrator::{state_function, Chain, Error, Orchestrate, Register, Registry
 
 fn main() {
     let mut registry = Registry::new();
-    let a: fn(State<f32, Error>) -> Result<State<f32, Error>, Error> =
-        state_function!(pow2, f32, Error);
-    let b: fn(State<f32, Error>) -> Result<State<f32, Error>, Error> =
-        state_function!(pow3, f32, Error);
-    let c: fn(State<f32, Error>) -> Result<State<f32, Error>, Error> =
-        state_function!(sqrt, f32, Error);
+    let a: fn(State<f32>) -> Result<State<f32>, Error> =
+        state_function!(pow2, f32);
+    let b: fn(State<f32>) -> Result<State<f32>, Error> =
+        state_function!(pow3, f32);
+    let c: fn(State<f32>) -> Result<State<f32>, Error> =
+        state_function!(sqrt, f32);
 
     registry.register(a, "pow2".to_string());
     registry.register(b, "pow3".to_string());
@@ -18,7 +18,7 @@ fn main() {
         .create(&registry.di_ref)
         .execute(State {
             proceed: true,
-            outcome: Ok(6.),
+            outcome: Some(6.),
             stage: Vec::<bool>::new(),
         });
 
@@ -28,21 +28,21 @@ fn main() {
         .create(&registry.di_ref)
         .execute(State {
             proceed: true,
-            outcome: Ok(6.),
+            outcome: Some(6.),
             stage: vec![true, true, false, false],
         });
 
     println!("{:?}", result);
 }
 
-fn pow2(n: f32) -> Result<f32, Error> {
-    Ok(n.powf(2.0))
+fn pow2(n: f32) -> Option<f32> {
+    Some(n.powf(2.0))
 }
 
-fn pow3(n: f32) -> Result<f32, Error> {
-    Ok(n.powf(3.0))
+fn pow3(n: f32) -> Option<f32> {
+    Some(n.powf(3.0))
 }
 
-fn sqrt(n: f32) -> Result<f32, Error> {
-    Ok(n.sqrt())
+fn sqrt(n: f32) -> Option<f32> {
+    Some(n.sqrt())
 }

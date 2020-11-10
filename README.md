@@ -1,22 +1,32 @@
 # Orchestration
 
-This is a basic orchestration library written in Rust and still under development, so any use case with outcome not being f32 will probably not work
+This is a basic orchestration library written in Rust and still under development
 
-* You define an orchestration function by using `state_function!` macro
+### 0.2 version now should be able to handle more types
+
+* breaking change, state functions need to return Option instead of Result
+* added example for string concatenation
+* updated example for calculations
+
+### 0.1 version only worked with f32
+
+## Setup
+
+### You define an orchestration function by using `state_function!` macro
 
 i.e.
 
 ``` rust
- let fn1: fn(State<f32, Error>) -> Result<State<f32, Error>, Error> =
-        state_function!(pow2, f32, Error);
+ let fn1: fn(State<f32>) -> Result<State<f32>, Error> =
+        state_function!(pow2, f32);
 ```
 
 A state is defined as follows
 
 ``` rust
-pub struct State<T, E> {
+pub struct State<T> {
     pub proceed: bool,
-    pub outcome: Result<T, E>,
+    pub outcome: Option<T>,
     pub stage: Vec<bool>,
 }
 ```
@@ -27,7 +37,7 @@ You can use the orchestration directly by using
   let result = vec![fn1, fn2, fn3]
         .execute(State {
             proceed: true,
-            outcome: Ok(6.),
+            outcome: Some(6.),
             stage: Vec::<bool>::new(),
         });
 ```
@@ -44,7 +54,7 @@ Which can be useful when you want to pass function sequences by configuration
         .create(&registry.di_ref)
         .execute(State {
             proceed: true,
-            outcome: Ok(6.),
+            outcome: Some(6.),
             stage: Vec::<bool>::new(),
         });
 ```
