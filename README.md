@@ -1,6 +1,6 @@
 # Orchestration
 
-This is a basic orchestration library written in Rust
+This is a basic orchestration library written in Rust and still under development, so any use case with outcome not being f32 will probably not work
 
 * You define an orchestration function by using `state_function!` macro
 
