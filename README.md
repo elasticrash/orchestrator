@@ -31,7 +31,7 @@ pub struct State<T> {
 }
 ```
 
-You can use the orchestration directly by using
+You can use the orchestration directly by using (in some cases)
 
 ``` rust
   let result = vec![fn1, fn2, fn3]
@@ -43,7 +43,7 @@ You can use the orchestration directly by using
 ```
 
 Or by using the registration trait and assigning string names to the orchestration functions.
-Which can be useful when you want to pass function sequences by configuration
+Which can be useful when you want to pass function sequences by configuration (more generic)
 
 ``` rust
     registry.register(fn1, "pow2".to_string());
@@ -66,3 +66,7 @@ Assigning values to the stage i.e.
 ``` 
 
 allows you to bypass certain steps (marked as true, in the sequence) 
+
+
+A more complicated example can be found here
+https://github.com/elasticrash/keyboard/blob/master/src/exported_geometry.rs
