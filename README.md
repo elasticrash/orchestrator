@@ -69,4 +69,4 @@ allows you to bypass certain steps (marked as true, in the sequence)
 
 
 A more complicated example can be found here
-https://github.com/elasticrash/keyboard/blob/master/src/exported_geometry.rs
+https://github.com/elasticrash/keyboard/blob/master/lib/src/geometry/exported_geometry.rs
