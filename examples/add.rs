@@ -3,8 +3,7 @@ use orchestrator::{state_function, Chain, Error, Orchestrate, Register, Registry
 
 fn main() {
     let mut registry = Registry::new();
-    let a: fn(State<String>) -> Result<State<String>, Error> =
-        state_function!(add, String);
+    let a: fn(State<String>) -> Result<State<String>, Error> = state_function!(add, String);
 
     registry.register(a, "add".to_string());
 
@@ -17,6 +16,7 @@ fn main() {
         });
 
     println!("{:?}", result);
+    assert_eq!(result.outcome.unwrap(), "testtesttesttesttesttesttesttest")
 }
 
 fn add(n: String) -> Option<String> {

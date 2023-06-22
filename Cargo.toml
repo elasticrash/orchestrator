@@ -1,9 +1,9 @@
 [package]
 name = "orchestrator"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["stefanos.kouroupis <stefanos.kouroupis@cloudcall.com>"]
 edition = "2018"
-description = "Create orchestration sequences"
+description = "Orchestration sequences"
 license = "MIT"
 keywords = ["orchestration", "pipeline", "sequences"]
 documentation = "https://docs.rs/orchestrator"

@@ -1,27 +1,24 @@
 # Orchestration
 
-This is a basic orchestration library written in Rust and still under development
+The orchestration library is designed to streamline and manage complex workflows by providing a framework for orchestrating and sequencing functions in a controlled manner. It allows developers to define a series of state functions and execute them in a predefined order, passing data between each step. With the ability to handle various types, the library offers flexibility in processing different data structures.
 
-### 0.2 version now should be able to handle more types
+### Improvements and changes:
 
-* breaking change, state functions need to return Option instead of Result
-* added example for string concatenation
-* updated example for calculations
-
-### 0.1 version only worked with f32
+* Enhanced type handling capabilities to accommodate a wider range of types.
+* String Concatenation Example: The updated documentation now includes an example showcasing string concatenation. This addition helps users understand how to perform string operations within their orchestration workflows.
+* Improved Calculation Example: The calculation example has been updated to demonstrate the improved capabilities of the library. Users can now leverage the library's features for performing calculations more effectively.
 
 ## Setup
 
-### You define an orchestration function by using `state_function!` macro
+To define an orchestration function, you can utilize the state_function! macro. Here's an example:
 
-i.e.
 
 ``` rust
  let fn1: fn(State<f32>) -> Result<State<f32>, Error> =
         state_function!(pow2, f32);
 ```
 
-A state is defined as follows
+A state is represented by the following structure:
 
 ``` rust
 pub struct State<T> {
@@ -31,7 +28,7 @@ pub struct State<T> {
 }
 ```
 
-You can use the orchestration directly by using (in some cases)
+In some cases, you can directly utilize the orchestration by employing the following approach:
 
 ``` rust
   let result = vec![fn1, fn2, fn3]
@@ -42,8 +39,7 @@ You can use the orchestration directly by using (in some cases)
         });
 ```
 
-Or by using the registration trait and assigning string names to the orchestration functions.
-Which can be useful when you want to pass function sequences by configuration (more generic)
+Alternatively, you can use the registration trait to assign string names to the orchestration functions. This approach proves useful when configuring function sequences more generically:
 
 ``` rust
     registry.register(fn1, "pow2".to_string());
@@ -59,14 +55,12 @@ Which can be useful when you want to pass function sequences by configuration (m
         });
 ```
 
-Assigning values to the stage i.e.
+By assigning values to the stage, as shown in the example below, you can bypass specific steps in the sequence. Marking a step as true allows it to be skipped:
+
 
 ```rust
             stage: vec![true, true, false, false],
 ``` 
 
-allows you to bypass certain steps (marked as true, in the sequence) 
-
-
-A more complicated example can be found here
+For a more intricate example, please refer to the following link: 
 https://github.com/elasticrash/keyboard/blob/master/lib/src/geometry/exported_geometry.rs

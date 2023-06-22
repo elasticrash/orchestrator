@@ -30,6 +30,9 @@ macro_rules! state_function {
     }};
 }
 
+type StateRes<T> = Result<State<T>, Error>;
+type VecFnState<T> = Vec<(fn(State<T>) -> StateRes<T>, String)>;
+
 #[derive(Debug)]
 pub struct Error {
     pub message: String,
@@ -43,23 +46,17 @@ pub struct State<T> {
 }
 
 pub trait Chain<T> {
-    fn create<'a>(
-        self,
-        col: &'a Vec<(fn(State<T>) -> Result<State<T>, Error>, String)>,
-    ) -> Vec<&'a fn(State<T>) -> Result<State<T>, Error>>;
+    fn create(self, col: &VecFnState<T>) -> Vec<&fn(State<T>) -> StateRes<T>>;
 }
 
 impl<T> Chain<T> for Vec<&str> {
-    fn create<'a>(
-        self,
-        col: &'a Vec<(fn(State<T>) -> Result<State<T>, Error>, String)>,
-    ) -> Vec<&'a fn(State<T>) -> Result<State<T>, Error>> {
+    fn create(self, col: &VecFnState<T>) -> Vec<&fn(State<T>) -> StateRes<T>> {
         self.iter()
             .map(|name| {
-                let (g, _m): &(fn(state: State<T>) -> Result<State<T>, Error>, String) =
-                    match col.iter().filter(|(_f, n)| n == name).next() {
+                let (g, _m): &(fn(state: State<T>) -> StateRes<T>, String) =
+                    match col.iter().find(|(_f, n)| n == name) {
                         Some(res) => res,
-                        None => panic!(format!("no function found with name {} exiting", name)),
+                        None => panic!("no function found with name {} exiting", name),
                     };
                 g
             })
@@ -69,16 +66,16 @@ impl<T> Chain<T> for Vec<&str> {
 
 #[derive(Debug)]
 pub struct Registry<T> {
-    pub di_ref: Vec<(fn(State<T>) -> Result<State<T>, Error>, String)>,
+    pub di_ref: VecFnState<T>,
 }
 
 pub trait Register<T> {
-    fn register(&mut self, f: fn(state: State<T>) -> Result<State<T>, Error>, name: String);
+    fn register(&mut self, f: fn(state: State<T>) -> StateRes<T>, name: String);
     fn new() -> Self;
 }
 
 impl<T> Register<T> for Registry<T> {
-    fn register(&mut self, f: fn(state: State<T>) -> Result<State<T>, Error>, name: String) {
+    fn register(&mut self, f: fn(state: State<T>) -> StateRes<T>, name: String) {
         self.di_ref.push((f, name));
     }
     fn new() -> Self {
@@ -90,7 +87,7 @@ pub trait Orchestrate<T> {
     fn execute(self, state: State<T>) -> State<T>;
 }
 
-impl<'a, T> Orchestrate<T> for Vec<&'a fn(State<T>) -> Result<State<T>, Error>> {
+impl<'a, T> Orchestrate<T> for Vec<&'a fn(State<T>) -> StateRes<T>> {
     fn execute(self, state: State<T>) -> State<T> {
         self.iter().enumerate().fold(state, |output, (i, func)| {
             let new_state = State {
@@ -109,7 +106,7 @@ impl<'a, T> Orchestrate<T> for Vec<&'a fn(State<T>) -> Result<State<T>, Error>> 
             }
             let mut next_state = func(new_state).unwrap();
             next_state.stage.push(next_state.proceed);
-            return next_state;
+            next_state
         })
     }
 }
